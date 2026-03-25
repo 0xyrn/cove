@@ -58,18 +58,76 @@ html, body, #root {
 .session-terminal .xterm-viewport::-webkit-scrollbar { width: 3px; }
 .session-terminal .xterm-viewport::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
-/* Connection handles - visible and interactive */
+/* Connection handles - always visible and interactive */
 .react-flow__handle {
-  opacity: 0.4;
-  transition: opacity 0.15s, transform 0.15s, background-color 0.15s;
+  opacity: 1 !important;
+  transition: transform 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 .react-flow__handle:hover {
-  opacity: 1;
   transform: scale(1.3);
   background-color: #534AB7 !important;
   border-color: #534AB7 !important;
+  box-shadow: 0 0 6px rgba(83, 74, 183, 0.4);
 }
-.react-flow__handle.connecting { opacity: 1; background-color: #534AB7 !important; }
+.react-flow__handle.connecting { background-color: #534AB7 !important; border-color: #534AB7 !important; }
+
+/* Session card handle styling */
+.react-flow__handle.session-handle {
+  width: 16px !important;
+  height: 16px !important;
+  background: var(--bg-header) !important;
+  border: 2px solid var(--border) !important;
+  border-radius: 50% !important;
+  cursor: crosshair;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.react-flow__handle.session-handle:hover {
+  background: #534AB7 !important;
+  border-color: #534AB7 !important;
+  box-shadow: 0 0 8px rgba(83, 74, 183, 0.5);
+}
+
+/* Handle icon (circle symbol) */
+.session-handle-icon {
+  font-size: 8px;
+  line-height: 1;
+  color: var(--text-muted);
+  pointer-events: none;
+  user-select: none;
+}
+.react-flow__handle.session-handle:hover .session-handle-icon {
+  color: #fff;
+}
+
+/* Handle label - shown on hover */
+.session-handle-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 9px;
+  font-weight: 500;
+  color: #534AB7;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.session-handle-left .session-handle-label {
+  right: calc(100% + 4px);
+}
+.session-handle-right .session-handle-label {
+  left: calc(100% + 4px);
+}
+.react-flow__handle.session-handle:hover .session-handle-label {
+  opacity: 1;
+}
 
 /* Agent idle float animation */
 @keyframes agent-float {

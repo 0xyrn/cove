@@ -293,8 +293,12 @@ function SessionCardNode({ data, selected }: NodeProps & { data: SessionType }) 
         style={{ width: 160, height: 36, backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 1px 4px var(--shadow)' }}
         onClick={() => minimizeSession(session.id)}
       >
-        <Handle type="target" position={Position.Left} style={{ width: 14, height: 14, background: 'var(--bg-header)', border: '2px solid var(--border)', borderRadius: '50%', cursor: 'crosshair' }} />
-        <Handle type="source" position={Position.Right} style={{ width: 14, height: 14, background: 'var(--bg-header)', border: '2px solid var(--border)', borderRadius: '50%', cursor: 'crosshair' }} />
+        <Handle type="target" position={Position.Left} className="session-handle session-handle-left" title="Drag to connect">
+          <span className="session-handle-icon">&#9675;</span>
+        </Handle>
+        <Handle type="source" position={Position.Right} className="session-handle session-handle-right" title="Drag to connect">
+          <span className="session-handle-icon">&#9675;</span>
+        </Handle>
         <div className="flex items-center h-full px-2 gap-2">
           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor }} />
           <span className="text-[10px] font-medium truncate flex-1" style={{ color: 'var(--text-primary)' }}>{session.name}</span>
@@ -327,9 +331,15 @@ function SessionCardNode({ data, selected }: NodeProps & { data: SessionType }) 
         if (skillId) addSkillToSession(skillId, session.id)
       }}
     >
-      {/* Connection handles */}
-      <Handle type="target" position={Position.Left} style={{ width: 8, height: 8, background: 'var(--text-muted)', border: '1px solid var(--border)' }} />
-      <Handle type="source" position={Position.Right} style={{ width: 8, height: 8, background: 'var(--text-muted)', border: '1px solid var(--border)' }} />
+      {/* Connection handles - always visible with icons */}
+      <Handle type="target" position={Position.Left} className="session-handle session-handle-left" title="Drag to connect">
+        <span className="session-handle-icon">&#9675;</span>
+        <span className="session-handle-label">connect</span>
+      </Handle>
+      <Handle type="source" position={Position.Right} className="session-handle session-handle-right" title="Drag to connect">
+        <span className="session-handle-icon">&#9675;</span>
+        <span className="session-handle-label">connect</span>
+      </Handle>
 
       {/* Header - drag handle */}
       <div className="session-drag-handle flex items-center h-8 px-3 cursor-grab active:cursor-grabbing select-none"

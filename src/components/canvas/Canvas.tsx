@@ -115,7 +115,15 @@ function CanvasInner({ onNewSession }: Props) {
   const onNodesChange = useCallback((changes: any[]) => {
     changes.forEach(change => {
       if (change.type === 'position' && change.position) {
-        updateSessionPosition(change.id, change.position)
+        const id: string = change.id
+        const state = useStore.getState()
+        if (state.sessions[id]) {
+          updateSessionPosition(id, change.position)
+        }
+        // For non-session nodes (previews, timelines, notes, recordings),
+        // position changes are handled by React Flow internally.
+        // We must NOT call updateSessionPosition for them - it would
+        // create a corrupt session entry that crashes the app.
       }
     })
   }, [updateSessionPosition])
