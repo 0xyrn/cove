@@ -46,9 +46,12 @@ function SessionCardNode({ data, selected }: NodeProps & { data: SessionType }) 
   const cleanupRef = useRef<(() => void)[]>([])
 
   // Build and launch claude with proper flags
+  // Uses single-quote shell escaping to prevent injection
+  const shellEscape = (s: string) => "'" + s.replace(/'/g, "'\\''") + "'"
+
   const launchClaude = async () => {
     const ptyId = ptyIdRef.current
-    let cmd = '$HOME/.local/bin/claude'
+    const args: string[] = ['$HOME/.local/bin/claude']
 
     // MCP config if tools assigned
     if (session.skills.length > 0) {
@@ -56,21 +59,23 @@ function SessionCardNode({ data, selected }: NodeProps & { data: SessionType }) 
       if (mcpJson && window.mcp) {
         try {
           const configPath = await window.mcp.writeConfig(session.id, mcpJson)
-          cmd += ` --mcp-config "${configPath}"`
+          if (typeof configPath === 'string' && configPath.startsWith('/')) {
+            args.push('--mcp-config', shellEscape(configPath))
+          }
         } catch {}
       }
     }
 
-    // System prompt if agent assigned
+    // System prompt if agent assigned - properly escaped
     if (session.assignedAgents.length > 0) {
       const agentDef = AGENTS.find(a => a.id === session.assignedAgents[0])
       if (agentDef) {
         const prompt = `You are ${agentDef.name}, a ${agentDef.role}. ${agentDef.systemPromptHint}`
-        cmd += ` --append-system-prompt "${prompt.replace(/"/g, '\\"')}"`
+        args.push('--append-system-prompt', shellEscape(prompt))
       }
     }
 
-    window.pty.write(ptyId, cmd + '\r')
+    window.pty.write(ptyId, args.join(' ') + '\r')
   }
 
   // Terminal setup

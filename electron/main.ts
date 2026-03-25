@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
-import { join } from 'path'
-import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from 'fs'
+import { join, resolve } from 'path'
+import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync, realpathSync } from 'fs'
 import { tmpdir } from 'os'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 
@@ -31,7 +31,13 @@ function createWindow(): void {
     if (is.dev) win.webContents.openDevTools({ mode: 'detach' })
   })
 
-  win.webContents.setWindowOpenHandler(d => { shell.openExternal(d.url); return { action: 'deny' } })
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    // Only allow http/https URLs and localhost - block file://, smb://, etc.
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)/.test(url) || /^https:\/\//.test(url)) {
+      shell.openExternal(url)
+    }
+    return { action: 'deny' }
+  })
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     win.loadURL(process.env['ELECTRON_RENDERER_URL'])
@@ -113,7 +119,11 @@ ipcMain.on('pty:write', (_e, { id, data }) => {
   }
   ptyProcesses.get(id).write(data)
 })
-ipcMain.on('pty:resize', (_e, { id, cols, rows }) => ptyProcesses.get(id)?.resize(cols, rows))
+ipcMain.on('pty:resize', (_e, { id, cols, rows }) => {
+  const safeCols = Math.max(1, Math.min(500, Number(cols) || 80))
+  const safeRows = Math.max(1, Math.min(200, Number(rows) || 30))
+  ptyProcesses.get(id)?.resize(safeCols, safeRows)
+})
 ipcMain.on('pty:kill', (_e, { id }) => {
   const p = ptyProcesses.get(id)
   if (!p) return
@@ -124,6 +134,10 @@ ipcMain.on('pty:kill', (_e, { id }) => {
 
 // ── MCP CONFIG ──
 ipcMain.handle('mcp:writeConfig', (_e, { sessionId, configJson }) => {
+  // Sanitize sessionId - prevent path traversal
+  if (typeof sessionId !== 'string' || !/^[\w\-]{1,128}$/.test(sessionId)) {
+    return { error: 'invalid_session_id' }
+  }
   try {
     JSON.parse(configJson)
   } catch {
@@ -132,9 +146,11 @@ ipcMain.handle('mcp:writeConfig', (_e, { sessionId, configJson }) => {
   }
   const dir = join(app.getPath('temp'), 'cove-mcp')
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
-  const path = join(dir, `${sessionId}.json`)
-  writeFileSync(path, configJson, 'utf-8')
-  return path
+  const safePath = join(dir, `${sessionId}.json`)
+  // Double check resolved path stays inside temp dir
+  if (!safePath.startsWith(dir)) return { error: 'path_traversal' }
+  writeFileSync(safePath, configJson, 'utf-8')
+  return safePath
 })
 
 // ── APP INFO ──
@@ -193,9 +209,15 @@ ipcMain.handle('claude:getProjects', () => {
 
 // ── CONNECTIONS SYNC ──
 ipcMain.handle('connections:sync', (_e, { projects }) => {
-  // projects = [{ path: '/path/to/project', connectedTo: [{ name: 'other', path: '/other/path' }] }]
+  const home = app.getPath('home')
   for (const project of projects) {
-    const claudeDir = join(project.path, '.claude')
+    // Validate path: must exist, must be under home dir, resolve symlinks
+    if (typeof project.path !== 'string' || !existsSync(project.path)) continue
+    let realPath: string
+    try { realPath = realpathSync(project.path) } catch { continue }
+    if (!realPath.startsWith(home)) continue
+
+    const claudeDir = join(realPath, '.claude')
     if (!existsSync(claudeDir)) mkdirSync(claudeDir, { recursive: true })
 
     const content = `# Connected Projects\n\n` +
