@@ -1,78 +1,206 @@
 # Cove
 
-A spatial canvas workspace for Claude Code. Think FigJam meets Terminal — every card is a live Claude Code session.
+**Spatial canvas for managing Claude Code sessions.**
 
-![Dark Mode](docs/screenshots/dark-mode.png)
+FigJam meets terminal. Drag agents onto session cards, connect projects, watch AI teammates work side by side — on an infinite canvas.
+
+> ⚠️ Alpha — things break. macOS only for now. PRs welcome.
+
+![Light mode](screenshots/light.png)
+
+---
 
 ## What is this?
 
-Cove turns Claude Code into a visual workspace. Instead of switching between terminal tabs, you work on an infinite canvas where each project is a card with a real terminal inside.
+Claude Code runs in a terminal. Multiple projects = multiple tabs. You lose track.
 
-- **Session cards** = Claude Code terminals. Click and type, Claude responds.
-- **Agents** = AI personas with different roles. Drag an agent to a card to set its behavior.
-- **Tools** = MCP integrations (GitHub, Supabase, etc). Drag to a card to connect.
-- **Connections** = Link related projects together.
+Cove replaces tabs with a spatial workspace. Every project is a card on a canvas. Every card has a real terminal inside. You see everything at once, connect related projects, and let AI agents work while you watch.
 
-![Light Mode](docs/screenshots/light-mode.png)
+## How it works
+
+```
+Drag an agent onto a session card
+  → Claude Code spawns with --append-system-prompt and --mcp-config
+  → Terminal streams into xterm.js inside the card
+  → You click the card, type, Claude responds
+  → Token cost parsed from stream-json output
+  → Preview cards spawn when localhost detected
+```
+
+## Screenshots
+
+| Dark mode | Notifications |
+|-----------|---------------|
+| ![Dark](screenshots/dark.png) | ![Notifications](screenshots/notifications.png) |
 
 ## Features
 
-**Core**
-- Infinite canvas with pan, zoom, grid snap
-- Session cards with embedded xterm.js terminals
-- Claude Code auto-launch with `--append-system-prompt` and `--mcp-config`
-- Multiple sessions running simultaneously
+### Working
+- Spatial canvas — pan, zoom, grid, minimap (reactflow)
+- Session cards with real terminals (xterm.js + node-pty)
+- 12 agents with unique roles and system prompts
+- Agent drag-drop onto cards (max 3 per card)
+- Skill/tool drag-drop with MCP config generation
+- Session connections with bezier edges
+- Sticky notes (N key, 6 colors, checkboxes)
+- Timeline card (event log from Claude Code hooks)
+- Session recording (500ms batch, 10K event cap)
+- Notification center (agent joined, tool connected, errors)
+- Snapshots (save/restore canvas layout)
+- Dark/light theme (Cmd+D)
+- Keyboard shortcuts (Cmd+N, Cmd+S, N, ?)
+- GitHub zone (drag session to push)
+- Trash zone (drag session to delete, with confirmation)
+- Persistence (session layout + agent assignments survive restart)
+- Graceful PTY shutdown + spawn limits (max 8)
 
-**Agents (12)**
-Drag any agent to a session card. Each has a unique role and system prompt:
+### Partially working
+- Token tracking — parses stream-json but needs `--output-format` flag timing fix
+- Preview cards — port detection works, health check runs, but iframe security needs hardening
+- Marketplace — fetches from GitHub with cache fallback, install is UI-only (doesn't add real MCP config yet)
+- MCP tools — 3 of 12 have verified server packages (GitHub, Supabase, Browser). Others have config but unverified npx packages
 
-Aya (Full-stack) · Ben (Architect) · Mia (DevOps) · Leo (Researcher) · Zara (QA) · Kai (UI/UX) · Nyx (Growth/SEO) · Sam (Security) · Rio (SaaS Builder) · Dex (Data/Automation) · Eve (AI/ML) · Teo (Tech Writer)
+### Not yet implemented
+- Session connection context sharing (.claude/connected-projects.md)
+- Agent chat bubbles (inter-agent messaging)
+- Agent expression changes (happy/sad/thinking)
+- Card resize handles
+- Cross-platform support (Windows, Linux)
 
-**Tools (12 MCP integrations)**
-GitHub · Sentry · Analytics · Figma · Linear · Stripe · Vercel · Slack · Search Console · Supabase · Cloudflare · Browser
+## Agents (12)
 
-**Canvas objects**
-- Sticky notes (press `N`) with 6 colors
-- Timeline cards showing session event history
-- Preview cards (web/mobile/API) with port auto-detection
-- Recording + playback of terminal sessions
-- Connections between cards with labels
+| Agent | Role | Style |
+|-------|------|-------|
+| Aya | Full-stack developer | Fast prototyper, ships first |
+| Ben | Software architect | Plans before coding |
+| Mia | DevOps / Infra | Automates everything |
+| Leo | Researcher / Analyst | Analyzes, compares, reports |
+| Zara | QA / Code reviewer | Finds every edge case |
+| Kai | UI/UX Designer | Pixel perfect, component-first |
+| Nyx | Growth / SEO | Traffic, conversion, content |
+| Sam | Security engineer | Audits everything, trusts nothing |
+| Rio | SaaS builder | MVP in a day |
+| Dex | Data / Automation | Pipelines, APIs, cron jobs |
+| Eve | AI / ML engineer | Models, prompts, RAG |
+| Teo | Tech writer / Docs | README, API docs, changelogs |
 
-**Workspace**
-- Dark / light theme toggle (`Cmd+D`)
-- Snapshots — save and restore canvas layouts (`Cmd+S`)
-- Notifications center with event tracking
-- Token / cost tracking per session
-- GitHub zone (drag card to push) + Trash zone (drag to delete)
-- Marketplace for community tools and agents
-- Keyboard shortcuts (`Cmd+N`, `Cmd+0`, `N`, `?`, `Esc`)
+Each agent has a different `--append-system-prompt` passed to Claude Code at session start.
 
-![Notifications](docs/screenshots/notifications.png)
+## Tools (12 MCP skills)
+
+GitHub, Sentry, Analytics, Figma, Linear/Notion, Stripe, Vercel/Netlify, Slack/Discord, Search Console, Supabase, Cloudflare, Browser.
+
+Drag a tool onto an agent or session card → MCP config JSON written to temp file → Claude Code launched with `--mcp-config` flag.
 
 ## Quick start
 
 ```bash
+# Prerequisites: Node.js 18+, Claude Code CLI installed and authenticated
+# Install CLI: npm install -g @anthropic-ai/claude-code
+# Authenticate: claude login
+
 git clone https://github.com/0xyrn/cove.git
 cd cove
 npm install
-npx electron-rebuild -f -w node-pty
 npm run dev
 ```
 
-Requires: Node.js 20+, Claude Code CLI installed (`~/.local/bin/claude`)
-
-## How to use
-
-1. Click **+ New Session** — pick a project from your Claude history or enter a path
-2. Drag an **agent** from the right panel onto the card
-3. Claude launches with the agent's personality. Type in the terminal.
-4. Drag **tools** from the left panel onto the card for MCP integrations
-5. Connect cards by dragging from one handle (○) to another
-6. Right-click cards for more options (preview, timeline, quick tasks)
-
 ## Stack
 
-Electron · React · TypeScript · Vite · reactflow · xterm.js · node-pty · Zustand · Framer Motion · Tailwind CSS
+| Layer | Tech | Version |
+|-------|------|---------|
+| Desktop | Electron | 31 |
+| Frontend | React + TypeScript | 18 |
+| Canvas | reactflow / xyflow | 12 |
+| Terminal | xterm.js + node-pty | 5.x |
+| State | Zustand (persisted) | 5 |
+| Styling | Tailwind CSS | 3 |
+| Build | electron-vite | 2 |
+| AI | Claude Code CLI + MCP | latest |
+
+## Architecture
+
+```
+electron/
+  main.ts              — Electron main process, IPC handlers, PTY management
+  preload.ts           — Context bridge (pty, mcp, app APIs)
+
+src/
+  App.tsx              — Root layout, keyboard shortcuts, new session modal
+  store/store.ts       — Zustand store (sessions, agents, skills, notes, recordings, snapshots)
+
+  components/
+    canvas/Canvas.tsx         — reactflow wrapper, node/edge rendering
+    session/SessionCard.tsx   — Main component: terminal + header + footer + agent avatars
+    agents/AgentPanel.tsx     — Right sidebar: draggable agent list
+    agents/AgentAvatar.tsx    — SVG mini-face avatars with status dots
+    skills/SkillPanel.tsx     — Left sidebar: draggable tool list
+    preview/PreviewCard.tsx   — Web/mobile/API preview with health checks
+    notes/StickyNote.tsx      — Canvas sticky notes
+    timeline/TimelineCard.tsx — Event log card
+    recording/RecordingPlayer.tsx — Session playback
+    notifications/NotificationCenter.tsx — Toast + panel
+    marketplace/MarketplacePanel.tsx    — Community skills/agents browser
+    ui/Toolbar.tsx            — Top bar: new session, snapshots, theme, notifications
+
+  lib/
+    mcpConfig.ts       — Builds MCP config JSON from assigned skills
+  data/
+    agents.ts          — 12 agent definitions (name, color, role, system prompt)
+    skills.ts          — 12 skill definitions (name, icon, color, MCP config)
+```
+
+### Session lifecycle
+
+```
+User creates session (picks folder)
+  → PTY spawned in Electron main process (node-pty, /bin/zsh -l)
+  → xterm.js attached in renderer
+  → User drags agent onto card
+  → Claude Code launched: claude --append-system-prompt "..." --mcp-config "/tmp/..."
+  → Terminal output streamed to xterm.js
+  → Token usage parsed from output
+  → Port detection regex scans output for localhost
+  → Timeline events logged from notifications
+```
+
+## Known issues
+
+- Token counter doesn't always increment (output parsing timing)
+- `--append-system-prompt` command visible in terminal on first launch
+- macOS only — node-pty and Electron paths are macOS-specific
+- Preview shows URL + open button (no embedded iframe)
+- Marketplace install button only updates UI state
+- Recording playback timing can drift on long sessions
+- PTY processes may leak if app is force-quit
+
+## Keyboard shortcuts
+
+| Key | Action |
+|-----|--------|
+| Cmd+N | New session |
+| Cmd+S | Save snapshot |
+| Cmd+D | Toggle dark/light |
+| N | New sticky note |
+| Esc | Close modals |
+| ? | Show shortcut list |
+
+## Roadmap
+
+- [ ] Fix token tracking reliability
+- [ ] Verify remaining MCP server packages
+- [ ] Session connection context sharing
+- [ ] Agent chat bubbles via Agent Teams API
+- [ ] Card resize handles
+- [ ] Agent expression changes
+- [ ] Cross-platform support (Windows, Linux)
+- [ ] Tauri port (lighter than Electron)
+
+## Contributing
+
+```bash
+# Fork → branch → change → test (npm run dev) → PR
+```
 
 ## License
 
