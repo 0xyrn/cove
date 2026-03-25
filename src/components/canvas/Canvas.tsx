@@ -57,17 +57,20 @@ function CanvasInner({ onNewSession }: Props) {
       id: p.id, type: 'preview' as const, position: p.position, data: p,
       width: p.size.width, height: p.size.height,
       style: { width: p.size.width, height: p.size.height },
+      draggable: true,
       dragHandle: '.session-drag-handle',
     }))
     const noteNodes = Object.values(notes).map(n => ({
       id: n.id, type: 'note' as const, position: n.position, data: n,
       width: n.size.width, height: n.size.height,
       style: { width: n.size.width, height: n.size.height },
+      draggable: true,
       dragHandle: '.session-drag-handle',
     }))
     const timelineNodes = Object.values(timelines).map(t => ({
       id: t.id, type: 'timeline' as const, position: t.position, data: t,
       width: 220, height: 280, style: { width: 220, height: 280 },
+      draggable: true,
       dragHandle: '.session-drag-handle',
     }))
     const recordingNodes = Object.values(recordings).filter(r => r.events.length > 0).map(r => {
@@ -77,6 +80,7 @@ function CanvasInner({ onNewSession }: Props) {
         position: session ? { x: session.position.x, y: session.position.y + session.size.height + 40 } : { x: 0, y: 0 },
         data: { recording: r, position: { x: 0, y: 0 } },
         width: 380, height: 260, style: { width: 380, height: 260 },
+        draggable: true,
         dragHandle: '.session-drag-handle',
       }
     })

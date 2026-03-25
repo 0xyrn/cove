@@ -312,8 +312,9 @@ export const useStore = create<HQStore>()(persist((set, get) => ({
     const s = get()
     const session = s.sessions[sessionId]
     if (!session) return id
-    // Position to the right of session card
-    const pos = { x: session.position.x + session.size.width + 40, y: session.position.y }
+    // Position to the right of session card, stagger if multiple previews
+    const existingPreviews = Object.values(s.previews).filter(p => p.sessionId === sessionId).length
+    const pos = { x: session.position.x + session.size.width + 40, y: session.position.y + existingPreviews * 250 }
     const sizes = { web: { width: 280, height: 220 }, mobile: { width: 180, height: 340 }, api: { width: 260, height: 200 } }
     set({
       previews: {
@@ -355,7 +356,7 @@ export const useStore = create<HQStore>()(persist((set, get) => ({
     set({
       timelines: {
         ...s.timelines,
-        [id]: { id, sessionId, sessionName: session.name, position: { x: session.position.x + session.size.width + 40, y: session.position.y } },
+        [id]: { id, sessionId, sessionName: session.name, position: { x: session.position.x, y: session.position.y + session.size.height + 40 } },
       },
       connections: [...s.connections, { id: `conn-${Date.now()}`, source: sessionId, target: id }],
     })
