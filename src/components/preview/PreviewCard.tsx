@@ -71,27 +71,30 @@ function PreviewCardNode({ data, selected }: NodeProps & { data: Preview }) {
 }
 
 function WebContent({ preview }: { preview: Preview }) {
+  const openInBrowser = () => {
+    if (preview.url) window.open(preview.url)
+  }
   return (
     <div className="h-full flex flex-col">
       {/* Mini browser chrome */}
       <div className="flex items-center h-6 px-2 gap-1.5" style={{ backgroundColor: 'var(--bg-canvas)', borderBottom: '1px solid var(--border)' }}>
-        <button className="text-[8px]" style={{ color: 'var(--text-muted)' }}>◄</button>
-        <button className="text-[8px]" style={{ color: 'var(--text-muted)' }}>►</button>
-        <button className="text-[8px]" style={{ color: 'var(--text-muted)' }}>↻</button>
+        <button onClick={openInBrowser} className="text-[8px]" style={{ color: 'var(--text-muted)' }}>↗</button>
         <div className="flex-1 px-2 py-0.5 rounded text-[8px] font-mono truncate" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
           {preview.url || 'localhost'}
         </div>
       </div>
-      {/* Webview area */}
-      <div className="flex-1 flex items-center justify-center" style={{ backgroundColor: 'var(--bg-canvas)' }}>
+      {/* Preview area - no iframe (crashes Electron), show URL + open button */}
+      <div className="flex-1 flex flex-col items-center justify-center p-3" style={{ backgroundColor: 'var(--bg-canvas)' }}>
         {preview.url ? (
-          <iframe
-              src={preview.url}
-              className="w-full h-full"
-              style={{ border: 'none' }}
-              sandbox="allow-scripts allow-same-origin allow-forms"
-              referrerPolicy="no-referrer"
-            />
+          <div className="text-center">
+            <div className="text-[20px] mb-2">{preview.status === 'live' ? '🟢' : '⚪'}</div>
+            <div className="text-[10px] font-mono mb-1" style={{ color: 'var(--text-primary)' }}>{preview.url}</div>
+            <div className="text-[8px] mb-3" style={{ color: 'var(--text-muted)' }}>{preview.status === 'live' ? 'Server running' : 'Waiting...'}</div>
+            <button onClick={openInBrowser}
+              className="text-[10px] px-4 py-1.5 rounded-lg font-medium" style={{ border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+              Open in browser ↗
+            </button>
+          </div>
         ) : (
           <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Waiting for server...</span>
         )}
@@ -110,21 +113,14 @@ function MobileContent({ preview }: { preview: Preview }) {
           <div className="h-4 bg-[#2C2C2A] flex items-center justify-center">
             <span className="text-[6px] text-white font-mono">9:41</span>
           </div>
-          {/* Screen */}
-          <div className="flex-1" style={{ height: 'calc(100% - 20px)' }}>
-            {preview.url ? (
-              <iframe
-              src={preview.url}
-              className="w-full h-full"
-              style={{ border: 'none' }}
-              sandbox="allow-scripts allow-same-origin allow-forms"
-              referrerPolicy="no-referrer"
-            />
-            ) : (
-              <div className="h-full flex items-center justify-center">
-                <span className="text-[8px]" style={{ color: 'var(--text-muted)' }}>No server</span>
+          {/* Screen - no iframe */}
+          <div className="flex-1 flex items-center justify-center" style={{ height: 'calc(100% - 20px)' }}>
+            <div className="text-center">
+              <div className="text-[14px] mb-1">{preview.status === 'live' ? '🟢' : '⚪'}</div>
+              <div className="text-[7px] font-mono" style={{ color: 'var(--text-secondary)' }}>
+                {preview.url || 'No server'}
               </div>
-            )}
+            </div>
           </div>
           {/* Home indicator */}
           <div className="h-4 flex items-center justify-center">
