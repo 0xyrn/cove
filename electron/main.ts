@@ -130,7 +130,7 @@ ipcMain.handle('mcp:writeConfig', (_e, { sessionId, configJson }) => {
     console.error(`[MCP] Invalid JSON for session=${sessionId}`)
     return { error: 'invalid_json' }
   }
-  const dir = join(app.getPath('temp'), 'agents-hq-mcp')
+  const dir = join(app.getPath('temp'), 'cove-mcp')
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
   const path = join(dir, `${sessionId}.json`)
   writeFileSync(path, configJson, 'utf-8')
@@ -199,7 +199,7 @@ ipcMain.handle('connections:sync', (_e, { projects }) => {
     if (!existsSync(claudeDir)) mkdirSync(claudeDir, { recursive: true })
 
     const content = `# Connected Projects\n\n` +
-      `This project is connected to the following projects in Agents HQ:\n\n` +
+      `This project is connected to the following projects in Cove:\n\n` +
       project.connectedTo.map((c: any) => `- **${c.name}** — \`${c.path}\``).join('\n') +
       `\n\nThese projects share context. When working on this project, consider the related projects above.\n`
 
@@ -218,7 +218,7 @@ ipcMain.on('win:close', () => BrowserWindow.getAllWindows()[0]?.close())
 
 // ── LIFECYCLE ──
 app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.agents-hq')
+  electronApp.setAppUserModelId('com.cove-workspace')
   app.on('browser-window-created', (_, w) => optimizer.watchWindowShortcuts(w))
   createWindow()
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })

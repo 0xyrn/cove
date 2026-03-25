@@ -519,7 +519,7 @@ export const useStore = create<HQStore>()(persist((set, get) => ({
     connections: s.connections.filter(c => c.id !== id),
   })),
 }), {
-  name: 'agents-hq-v4',
+  name: 'cove',
   storage: createJSONStorage(() => localStorage),
   partialize: (state) => ({
     _agentSkills: Object.fromEntries(

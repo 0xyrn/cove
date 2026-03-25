@@ -13,7 +13,7 @@ interface ClaudeProject {
 export default function NewSessionModal({ onClose }: Props) {
   const [tab, setTab] = useState<'projects' | 'new'>('projects')
   const [name, setName] = useState('')
-  const [path, setPath] = useState('/Users/yarensmac/')
+  const [path, setPath] = useState('~/')
   const [projects, setProjects] = useState<ClaudeProject[]>([])
   const [loading, setLoading] = useState(true)
   const [pathWarning, setPathWarning] = useState('')

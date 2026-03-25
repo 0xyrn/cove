@@ -20,7 +20,7 @@ export default function Toolbar({ onNewSession }: Props) {
 
       <div className="flex items-center gap-3">
         <span className="text-[11px] font-mono tracking-[3px] font-medium" style={{ color: 'var(--text-muted)' }}>
-          AGENTS HQ
+          COVE
         </span>
         {sessionCount > 0 && (
           <span className="text-[9px] font-mono px-1.5 py-0.5 rounded"

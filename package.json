@@ -1,5 +1,5 @@
 {
-  "name": "agents-hq",
+  "name": "cove",
   "version": "0.4.0",
   "description": "FigJam + Terminal — spatial canvas for Claude Code sessions",
   "main": "out/main/main.js",

@@ -47,7 +47,7 @@ export default function App() {
   }, [])
 
   const handleGithubDrop = useCallback((sessionId: string, mode: 'push' | 'archive') => {
-    sendToDesk(sessionId, 'git add -A && git commit -m "push from Agents HQ" && git push\r')
+    sendToDesk(sessionId, 'git add -A && git commit -m "push from Cove" && git push\r')
     if (mode === 'archive') {
       setTimeout(() => closeSession(sessionId), 5000)
     }
