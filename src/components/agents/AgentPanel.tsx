@@ -1,5 +1,4 @@
 import { useStore } from '../../store/store'
-import AgentAvatar from './AgentAvatar'
 
 export default function AgentPanel() {
   const agents = useStore(s => s.agents)

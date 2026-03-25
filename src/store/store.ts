@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { AGENTS } from '../data/agents'
-import { SKILLS } from '../data/skills'
 
 // ── Types ──
 
@@ -389,7 +388,7 @@ export const useStore = create<HQStore>()(persist((set, get) => ({
     try {
       const data = JSON.parse(snap.data)
       set({ sessions: data.sessions || {}, notes: data.notes || {}, connections: data.connections || [], previews: data.previews || {} })
-    } catch {}
+    } catch (e) { console.error('[Snapshot] Failed to load:', e) }
   },
 
   deleteSnapshot: (id) => set(s => ({

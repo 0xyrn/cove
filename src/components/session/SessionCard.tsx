@@ -4,7 +4,7 @@ import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import { useStore, type SessionCard as SessionType } from '../../store/store'
-import { registerPty, unregisterPty, sendToDesk } from '../../lib/ptyRegistry'
+import { registerPty, unregisterPty } from '../../lib/ptyRegistry'
 import { AGENTS } from '../../data/agents'
 import { SKILLS } from '../../data/skills'
 import AgentAvatar from '../agents/AgentAvatar'
@@ -62,7 +62,7 @@ function SessionCardNode({ data, selected }: NodeProps & { data: SessionType }) 
           if (typeof configPath === 'string' && configPath.startsWith('/')) {
             args.push('--mcp-config', shellEscape(configPath))
           }
-        } catch {}
+        } catch (e) { console.error('[MCP] writeConfig failed:', e) }
       }
     }
 
@@ -137,27 +137,19 @@ function SessionCardNode({ data, selected }: NodeProps & { data: SessionType }) 
         // Pattern 1: "$0.0234 session" → direct session cost
         const costMatch = d.match(/\$(\d+\.?\d*)\s*session/i)
         if (costMatch) {
-          const cost = parseFloat(costMatch[1])
-          console.log('[TOKEN]', { input: 0, output: 0, cost })
-          addTokenUsage(session.id, 0, 0, cost)
+          addTokenUsage(session.id, 0, 0, parseFloat(costMatch[1]))
         }
         // Pattern 2: "1.2k in, 0.5k out" → token counts with k suffix
         const kInMatch = d.match(/(\d+\.?\d*)\s*[kK]\s*in/i)
         const kOutMatch = d.match(/(\d+\.?\d*)\s*[kK]\s*out/i)
         if (kInMatch && !costMatch) {
-          const input = parseFloat(kInMatch[1]) * 1000
-          const output = kOutMatch ? parseFloat(kOutMatch[1]) * 1000 : 0
-          console.log('[TOKEN]', { input, output, cost: null })
-          addTokenUsage(session.id, input, output)
+          addTokenUsage(session.id, parseFloat(kInMatch[1]) * 1000, kOutMatch ? parseFloat(kOutMatch[1]) * 1000 : 0)
         }
         // Pattern 3: "tokens: 1234 input, 567 output" → raw token counts
         const rawInMatch = d.match(/tokens?:\s*(\d+)\s*input/i)
         const rawOutMatch = d.match(/(\d+)\s*output/i)
         if (rawInMatch && !kInMatch && !costMatch) {
-          const input = parseInt(rawInMatch[1], 10)
-          const output = rawOutMatch ? parseInt(rawOutMatch[1], 10) : 0
-          console.log('[TOKEN]', { input, output, cost: null })
-          addTokenUsage(session.id, input, output)
+          addTokenUsage(session.id, parseInt(rawInMatch[1], 10), rawOutMatch ? parseInt(rawOutMatch[1], 10) : 0)
         }
 
         // Detect ports (store for manual preview spawn via footer buttons)

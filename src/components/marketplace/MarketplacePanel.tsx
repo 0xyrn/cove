@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useStore } from '../../store/store'
 
 const MARKETPLACE_URL = 'https://raw.githubusercontent.com/cove-workspace/marketplace/main/index.json'
 const CACHE_KEY = 'cove-marketplace-cache'
